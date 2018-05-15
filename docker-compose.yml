@@ -1,0 +1,37 @@
+version: '3'
+services:
+  php:
+    build: build/php
+    working_dir: /var/www/symfony
+    expose:
+      - "9000"
+    links:
+      - db
+    volumes:
+      - ./symfony:/var/www/symfony:cached
+      - ./logs:/var/log
+    environment:
+        - DATABASE_URL=mysql://mydbuser:mydbuserpassword@db:3306/mywebsite
+  web:
+    build: build/nginx
+    restart: always
+    ports:
+        - "81:80"
+    links:
+        - php
+        - db
+    volumes:
+        - ./symfony:/var/www/symfony:cached
+        - ./logs:/var/log/nginx
+  db:
+    image: mysql/mysql-server:5.7
+    environment:
+        - MYSQL_ROOT_PASSWORD=mypassword
+        - MYSQL_ROOT_HOST=%
+        - MYSQL_USER=mydbuser
+        - MYSQL_PASSWORD=mydbuserpassword
+        - MYSQL_DATABASE=mywebsite
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql:/var/lib/mysql
